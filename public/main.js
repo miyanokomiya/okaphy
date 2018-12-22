@@ -1,4 +1,4 @@
-const GoWasm = {
+window.GoWasm = {
   functions: {},
   onAddFunction(name) {
     console.log('add wasm function: ', name)
@@ -24,24 +24,28 @@ const GoWasm = {
   onLoad () {
     document.getElementById("wasmReady").textContent = 'wasm ready'
     console.log('wasm functions loaded')
+  },
+  init () {
+    if (!WebAssembly.instantiateStreaming) { // polyfill
+      WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer
+        return await WebAssembly.instantiate(source, importObject)
+      }
+    }
+
+    const go = new Go()
+    let mod, inst
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+      .then(result => {
+        mod = result.module
+        inst = result.instance
+        go.run(inst)
+      })
+      .catch(err => {
+        console.error(err)
+      })
   }
 }
-window.GoWasm = GoWasm
 
-if (!WebAssembly.instantiateStreaming) { // polyfill
-  WebAssembly.instantiateStreaming = async (resp, importObject) => {
-  const source = await (await resp).arrayBuffer
-  return await WebAssembly.instantiate(source, importObject)
-  }
-}
-
-const go = new Go()
-let mod, inst
-WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-  mod = result.module
-  inst = result.instance
-  go.run(inst)
-}).catch((err) => {
-  console.error(err)
-})
+GoWasm.init()
 

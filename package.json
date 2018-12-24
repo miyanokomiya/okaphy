@@ -2,7 +2,7 @@
   "name": "okaphy",
   "version": "0.0.1",
   "repository": "https://github.com/miyanokomiya/okaphy.git",
-  "author": "miyanokomiya <tomoya.hstexze24632@gmail.com>",
+  "author": "miyanokomiya",
   "license": "MIT",
   "devDependencies": {
     "eslint": "^5.11.0",

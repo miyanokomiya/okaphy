@@ -3,7 +3,7 @@ window.GoWasm = {
   onAddFunction(name) {
     console.log('add wasm function: ', name)
   },
-  onLoad () {
+  onLoad() {
     console.log('wasm functions loaded')
 
     this.functions.run({
@@ -14,33 +14,44 @@ window.GoWasm = {
     })
 
     this.functions.add({
-      data: [{
-        id: 'id_1',
-        type: 'polygon',
-        units: [{
-          points: [{ x: 0, y: 10 }, { x: 4, y: 10 }, { x: 4, y: 14 }]
-        }]
-      }, {
-        id: 'id_2',
-        type: 'polygon',
-        units: [{
-          points: [{ x: 10, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 14 }]
-        }]
-      }, {
-        id: 'id_3',
-        type: 'polygon',
-        units: [{
-          points: [{ x: 0, y: 15 }, { x: 4, y: 15 }, { x: 4, y: 19 }]
-        }]
-      }],
+      data: [
+        {
+          id: 'id_1',
+          type: 'polygon',
+          units: [
+            {
+              points: [{ x: 0, y: 10 }, { x: 4, y: 10 }, { x: 4, y: 14 }]
+            }
+          ]
+        },
+        {
+          id: 'id_2',
+          type: 'polygon',
+          units: [
+            {
+              points: [{ x: 10, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 14 }]
+            }
+          ]
+        },
+        {
+          id: 'id_3',
+          type: 'polygon',
+          units: [
+            {
+              points: [{ x: 0, y: 15 }, { x: 4, y: 15 }, { x: 4, y: 19 }]
+            }
+          ]
+        }
+      ],
       done: data => {
         console.log(data)
       },
       fail: console.error
     })
   },
-  init () {
-    if (!WebAssembly.instantiateStreaming) { // polyfill
+  init() {
+    if (!WebAssembly.instantiateStreaming) {
+      // polyfill
       WebAssembly.instantiateStreaming = async (resp, importObject) => {
         const source = await (await resp).arrayBuffer
         return await WebAssembly.instantiate(source, importObject)
@@ -49,7 +60,7 @@ window.GoWasm = {
 
     const go = new Go()
     let mod, inst
-    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject)
+    WebAssembly.instantiateStreaming(fetch('main.wasm'), go.importObject)
       .then(result => {
         mod = result.module
         inst = result.instance
@@ -81,7 +92,9 @@ function start() {
       return
     }
     step()
-    setTimeout(() => { loop() }, 1000 / 60)
+    setTimeout(() => {
+      loop()
+    }, 1000 / 60)
   }
 
   moving = true
@@ -134,4 +147,3 @@ function adjustY(v) {
 function adjustAngle(v) {
   return -v
 }
-

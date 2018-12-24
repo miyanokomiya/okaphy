@@ -1,3 +1,5 @@
 main.wasm
 vendor
+node_modules
+yarn-error.log
 

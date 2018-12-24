@@ -2,28 +2,16 @@ window.GoWasm = {
   functions: {},
   onAddFunction(name) {
     console.log('add wasm function: ', name)
-    const createButton = (name) => {
-      const btn = document.createElement('button')
-      btn.type = 'button'
-      btn.onclick = () => {
-        this.functions[name]({
-          data: { a: 1, b: 2 },
-          done: (arg) => {
-            console.log('done: ', arg)
-          },
-          fail: (err) => {
-            console.error(err)
-          }
-        })
-      }
-      btn.textContent = name
-      document.body.appendChild(btn)
-    }
-    createButton(name)
   },
   onLoad () {
-    document.getElementById("wasmReady").textContent = 'wasm ready'
     console.log('wasm functions loaded')
+
+    this.functions.run({
+      done: data => {
+        console.log(data)
+      },
+      fail: console.error
+    })
   },
   init () {
     if (!WebAssembly.instantiateStreaming) { // polyfill
@@ -41,11 +29,74 @@ window.GoWasm = {
         inst = result.instance
         go.run(inst)
       })
-      .catch(err => {
-        console.error(err)
-      })
+      .catch(console.error)
   }
 }
 
 GoWasm.init()
+
+const canvas = document.getElementById('canvas')
+const ctx = canvas.getContext('2d')
+const startButton = document.getElementById('start')
+startButton.onclick = start
+document.getElementById('step').onclick = step
+
+let moving = false
+function start() {
+  if (moving) {
+    moving = false
+    startButton.textContent = 'start'
+    return
+  }
+
+  function loop() {
+    if (!moving) {
+      return
+    }
+    step()
+    setTimeout(() => { loop() }, 1000 / 60)
+  }
+
+  moving = true
+  startButton.textContent = 'stop'
+  loop()
+}
+
+function step() {
+  GoWasm.functions.step({
+    done: shapes => {
+      console.log(shapes)
+      ctx.clearRect(0, 0, 1000, 1000)
+      shapes.forEach(shape => {
+        const x = shape.x
+        const y = shape.y
+        shape.units.forEach(unit => {
+          ctx.beginPath()
+          unit.points.forEach((p, i) => {
+            if (i === 0) {
+              ctx.moveTo(adjustX(x + p.x), adjustY(y + p.y))
+            } else {
+              ctx.lineTo(adjustX(x + p.x), adjustY(y + p.y))
+            }
+          })
+          if (unit.type === 'polygon') {
+            ctx.closePath()
+            ctx.fill()
+          } else {
+            ctx.stroke()
+          }
+        })
+      })
+    },
+    fail: console.error
+  })
+}
+
+function adjustX(v) {
+  return v * 10
+}
+
+function adjustY(v) {
+  return -v * 10 + canvas.height
+}
 

@@ -3,16 +3,19 @@ package main
 import (
 	"fmt"
 	"syscall/js"
+
+	"github.com/miyanokomiya/okaphy/app"
 )
 
 var goWasm = js.Global().Get("GoWasm")
+var a app.App
 
 func main() {
 	c := make(chan struct{}, 0)
 
-	wasmWrapper("getHello", getHello)
-	wasmWrapper("get100", get100)
 	wasmWrapper("echo", echo)
+	wasmWrapper("run", run)
+	wasmWrapper("step", step)
 
 	goWasm.Call("onLoad")
 	<-c
@@ -28,18 +31,20 @@ func wasmWrapper(name string, fn func(value js.Value) (interface{}, error)) {
 			return
 		}
 
-		data := values[0].Get("data")
+		arg := values[0]
+
+		data := arg.Get("data")
 		res, err := fn(data)
 
 		if err != nil {
-			fail := values[0].Get("fail")
+			fail := arg.Get("fail")
 			if fail != js.Undefined() {
 				fail.Invoke(err.Error())
 			}
 			return
 		}
 
-		done := values[0].Get("done")
+		done := arg.Get("done")
 		if done != js.Undefined() {
 			done.Invoke(res)
 		}
@@ -49,14 +54,21 @@ func wasmWrapper(name string, fn func(value js.Value) (interface{}, error)) {
 	goWasm.Call("onAddFunction", name)
 }
 
-func getHello(value js.Value) (interface{}, error) {
-	return fmt.Sprintf("Hello " + value.String()), nil
-}
-
-func get100(value js.Value) (interface{}, error) {
-	return 100, nil
-}
-
 func echo(value js.Value) (interface{}, error) {
 	return value, nil
+}
+
+func run(value js.Value) (interface{}, error) {
+	a = app.NewApp()
+	a.Run()
+	return nil, nil
+}
+
+func step(value js.Value) (interface{}, error) {
+	a.Step()
+	array := js.Global().Get("Array").New()
+	for _, shape := range a.GetShapes() {
+		array.Call("push", shape.ToObject())
+	}
+	return array, nil
 }

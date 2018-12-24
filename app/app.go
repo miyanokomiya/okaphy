@@ -3,6 +3,7 @@ package app
 import (
 	"math"
 	"sort"
+	"syscall/js"
 
 	"github.com/ByteArena/box2d"
 )
@@ -16,6 +17,7 @@ type App interface {
 	Run()
 	Step()
 	GetShapes() []Shape
+	AddShapes(value js.Value)
 }
 
 type app struct {
@@ -34,6 +36,10 @@ func NewApp() App {
 	}
 }
 
+func (a *app) AddShapes(value js.Value) {
+	newBodyFromObjects(a, value)
+}
+
 func (a *app) GetShapes() []Shape {
 	characterNames := make([]string, 0)
 	for k := range a.characters {
@@ -45,7 +51,7 @@ func (a *app) GetShapes() []Shape {
 	var character *box2d.B2Body
 	for _, name := range characterNames {
 		character = a.characters[name]
-		shapes = append(shapes, *newShape(character))
+		shapes = append(shapes, *newShape(character, name))
 	}
 	return shapes
 }

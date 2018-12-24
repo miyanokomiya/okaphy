@@ -16,6 +16,7 @@ func main() {
 	wasmWrapper("echo", echo)
 	wasmWrapper("run", run)
 	wasmWrapper("step", step)
+	wasmWrapper("add", add)
 
 	goWasm.Call("onLoad")
 	<-c
@@ -66,6 +67,15 @@ func run(value js.Value) (interface{}, error) {
 
 func step(value js.Value) (interface{}, error) {
 	a.Step()
+	array := js.Global().Get("Array").New()
+	for _, shape := range a.GetShapes() {
+		array.Call("push", shape.ToObject())
+	}
+	return array, nil
+}
+
+func add(value js.Value) (interface{}, error) {
+	a.AddShapes(value)
 	array := js.Global().Get("Array").New()
 	for _, shape := range a.GetShapes() {
 		array.Call("push", shape.ToObject())

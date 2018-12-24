@@ -12,6 +12,32 @@ window.GoWasm = {
       },
       fail: console.error
     })
+
+    this.functions.add({
+      data: [{
+        id: 'id_1',
+        type: 'polygon',
+        units: [{
+          points: [{ x: 0, y: 10 }, { x: 4, y: 10 }, { x: 4, y: 14 }]
+        }]
+      }, {
+        id: 'id_2',
+        type: 'polygon',
+        units: [{
+          points: [{ x: 10, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 14 }]
+        }]
+      }, {
+        id: 'id_3',
+        type: 'polygon',
+        units: [{
+          points: [{ x: 0, y: 15 }, { x: 4, y: 15 }, { x: 4, y: 19 }]
+        }]
+      }],
+      done: data => {
+        console.log(data)
+      },
+      fail: console.error
+    })
   },
   init () {
     if (!WebAssembly.instantiateStreaming) { // polyfill
@@ -37,6 +63,7 @@ GoWasm.init()
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
+ctx.translate(0, canvas.height)
 const startButton = document.getElementById('start')
 startButton.onclick = start
 document.getElementById('step').onclick = step
@@ -66,17 +93,19 @@ function step() {
   GoWasm.functions.step({
     done: shapes => {
       console.log(shapes)
-      ctx.clearRect(0, 0, 1000, 1000)
+      ctx.clearRect(0, 0, canvas.width, -canvas.height)
       shapes.forEach(shape => {
-        const x = shape.x
-        const y = shape.y
+        ctx.save()
+        ctx.translate(adjustX(shape.x), sadjustY(shape.y))
+        ctx.rotate(adjustAngle(shape.angle))
+
         shape.units.forEach(unit => {
           ctx.beginPath()
           unit.points.forEach((p, i) => {
             if (i === 0) {
-              ctx.moveTo(adjustX(x + p.x), adjustY(y + p.y))
+              ctx.moveTo(adjustX(p.x), adjustY(p.y))
             } else {
-              ctx.lineTo(adjustX(x + p.x), adjustY(y + p.y))
+              ctx.lineTo(adjustX(p.x), adjustY(p.y))
             }
           })
           if (unit.type === 'polygon') {
@@ -86,6 +115,8 @@ function step() {
             ctx.stroke()
           }
         })
+
+        ctx.restore()
       })
     },
     fail: console.error
@@ -97,6 +128,10 @@ function adjustX(v) {
 }
 
 function adjustY(v) {
-  return -v * 10 + canvas.height
+  return -v * 10
+}
+
+function adjustAngle(v) {
+  return -v
 }
 

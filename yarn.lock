@@ -3332,9 +3332,9 @@ object.values@^1.0.4:
     has "^1.0.1"
 
 okageo@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/okageo/-/okageo-1.0.1.tgz#382f945f4b675b3b1e37b6fc9b8d06f6cb1b9240"
-  integrity sha512-FyhG1xPzGOcewZd/1eGLc91aypK+iQ/9VnSvfUoBRNkboA4pOScqtwF+P0jWus4sRb9D8SHnzb21Biutl07PYw==
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/okageo/-/okageo-1.0.2.tgz#6c6f14b534785d76ae24fe653854a910475dffa1"
+  integrity sha512-JKEd6IoKpjrUsV5zyqUZ0YfLh18rLRZRj/jvAiQDFVXiuHgtuRC3FAZqCCArE4XU8k1kr6QhCmj2bsJmsWWGmw==
 
 on-finished@~2.3.0:
   version "2.3.0"

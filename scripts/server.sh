@@ -1,5 +1,5 @@
 # /bin/bash
 
-cd public
+cd dist
 go run server.go
 

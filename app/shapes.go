@@ -157,7 +157,6 @@ func newBodyFromObjects(a *app, value js.Value) {
 func newPolygonBody(a *app, value js.Value) {
 	bd := box2d.MakeB2BodyDef()
 	bd.Type = box2d.B2BodyType.B2_dynamicBody
-	bd.Position.Set(5.0, 8.0)
 	body := a.world.CreateBody(&bd)
 
 	units := value.Get("units")

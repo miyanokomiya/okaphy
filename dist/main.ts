@@ -3,7 +3,6 @@ import * as svg from 'okageo/src/svg'
 import { IVec2 } from 'okageo/types'
 
 interface IShape {
-  id: string
   x: number
   y: number
   angle: number
@@ -64,6 +63,8 @@ interface IWindow { GoWasm: any }
 declare var window: IWindow
 window.GoWasm = goWasm
 
+let shapeList: IShape[] = []
+
 const fileInput = document.getElementById('input') as HTMLInputElement
 fileInput.onchange = (e) => {
   const file = (e.target as HTMLInputElement).files
@@ -74,13 +75,14 @@ fileInput.onchange = (e) => {
   reader.onload = () => {
     const pathInfoList = svg.parseSvgGraphicsStr(reader.result as string)
     const inRectList = svg.fitRect(pathInfoList, 0, 0, canvas.width, canvas.height)
+    shapeList = inRectList.map((info) => ({
+      angle: 0,
+      units: geo.triangleSplit(info.d).map((points) => ({ points })),
+      x: 0,
+      y: 0
+    }))
     goWasm.functions.add({
-      data: inRectList.map((info) => ({
-        id: `${Math.random()}`,
-        type: 'polygon',
-        // units: [{ points: info.d }]
-        units: geo.triangleSplit(info.d).map((points) => ({ points }))
-      })),
+      data: shapeList,
       done: (data: any) => { console.log(data) },
       fail: console.error
     })
@@ -109,7 +111,7 @@ function start () {
     step()
     setTimeout(() => {
       loop()
-    }, 1000 / 60)
+    }, 1000 / 30)
   }
 
   moving = true
@@ -122,18 +124,24 @@ function step () {
     done: (shapes: IShape[]) => {
       if (!ctx) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      shapes.forEach((shape: IShape) => {
+
+      shapeList = shapeList.map((old, i) => {
+        const next = shapes[i]
+        return { ...old, x: next.x, y: next.y, angle: next.angle }
+      })
+
+      shapeList.forEach((shape: IShape) => {
         ctx.save()
-        ctx.translate(adjustX(shape.x), adjustY(shape.y))
-        ctx.rotate(adjustAngle(shape.angle))
+        ctx.translate(shape.x, shape.y)
+        ctx.rotate(shape.angle)
 
         shape.units.forEach((unit) => {
           ctx.beginPath()
           unit.points.forEach((p: IVec2, j: number) => {
             if (j === 0) {
-              ctx.moveTo(adjustX(p.x), adjustY(p.y))
+              ctx.moveTo(p.x, p.y)
             } else {
-              ctx.lineTo(adjustX(p.x), adjustY(p.y))
+              ctx.lineTo(p.x, p.y)
             }
           })
           ctx.closePath()
@@ -146,16 +154,4 @@ function step () {
     },
     fail: console.error
   })
-}
-
-function adjustX (v: number): number {
-  return v
-}
-
-function adjustY (v: number): number {
-  return v
-}
-
-function adjustAngle (v: number): number {
-  return v
 }

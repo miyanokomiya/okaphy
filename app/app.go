@@ -1,7 +1,6 @@
 package app
 
 import (
-	"sort"
 	"syscall/js"
 
 	"github.com/ByteArena/box2d"
@@ -22,7 +21,7 @@ type App interface {
 type app struct {
 	gravity    box2d.B2Vec2
 	world      box2d.B2World
-	characters map[string]*box2d.B2Body
+	characters []*box2d.B2Body
 }
 
 // NewApp アプリ作成
@@ -31,7 +30,7 @@ func NewApp() App {
 	return &app{
 		gravity:    gravity,
 		world:      box2d.MakeB2World(gravity),
-		characters: make(map[string]*box2d.B2Body),
+		characters: []*box2d.B2Body{},
 	}
 }
 
@@ -40,17 +39,9 @@ func (a *app) AddShapes(value js.Value) {
 }
 
 func (a *app) GetShapes() []Shape {
-	characterNames := make([]string, 0)
-	for k := range a.characters {
-		characterNames = append(characterNames, k)
-	}
-	sort.Strings(characterNames)
-
 	shapes := []Shape{}
-	var character *box2d.B2Body
-	for _, name := range characterNames {
-		character = a.characters[name]
-		shapes = append(shapes, *newShape(character, name))
+	for _, character := range a.characters {
+		shapes = append(shapes, *newShape(character))
 	}
 	return shapes
 }
@@ -68,6 +59,5 @@ func (a *app) Run() {
 		shape := box2d.MakeB2EdgeShape()
 		shape.Set(box2d.MakeB2Vec2(-1000.0, 0.0), box2d.MakeB2Vec2(2000.0, 0.0))
 		ground.CreateFixture(&shape, 0.0)
-		// a.characters["00_ground"] = ground
 	}
 }
